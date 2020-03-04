@@ -77,8 +77,8 @@ def main():
         for longer_word in clean_dictionary:
             for offs in find_offsets(longer_word, word):
                 #needs changing
-                prefix = [:offs]
-                suffix = [offs+1:]
+                prefix = longer_word[:offs]
+                suffix = longer_word[offs+1:]
 
                 prev_node = start_node
 
@@ -139,7 +139,7 @@ def main():
                         next_node = {
                             "letter" : "#",
                             "end" : True,
-                            "delimiter" : False,
+                            "delimiter" : True,
                             "children" : {}
                         }
                         prev_node["children"]["#"] = next_node
