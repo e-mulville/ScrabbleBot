@@ -2,6 +2,19 @@ import string
 import time
 import json
 
+def find_offsets(haystack, needle):
+    """
+    Find the start of all (possibly-overlapping) instances of needle in haystack
+    """
+    offs = -1
+    while True:
+        offs = haystack.find(needle, offs+1)
+        if offs == -1:
+            break
+        else:
+            yield offs
+
+
 def print_dict_preffix(node, word):
     if node["delimiter"] == True:
         new_word = word + "#"
@@ -62,11 +75,10 @@ def main():
         start["children"][word] = start_node
 
         for longer_word in clean_dictionary:
-            print(word)
-            if word in longer_word:
-                #print(word, longer_word)
-                prefix, _, suffix = longer_word.partition(word)
+            for offs in find_offsets(longer_word, word):
                 #needs changing
+                prefix = [:offs]
+                suffix = [offs+1:]
 
                 prev_node = start_node
 
@@ -110,32 +122,41 @@ def main():
                         else:
                             prev_node = prev_node["children"][letter]
 
-                    next_node = {
-                        "letter" : suffix[-1],
-                        "end" : True,
-                        "delimiter" : False,
-                        "children" : {}
-                    }
-                    prev_node["children"][suffix[-1]] = next_node
+                    if suffix[-1] not in prev_node["children"]:
+                        next_node = {
+                            "letter" : suffix[-1],
+                            "end" : True,
+                            "delimiter" : False,
+                            "children" : {}
+                        }
+                        prev_node["children"][suffix[-1]] = next_node
+                    else:
+                        prev_node["children"][suffix[-1]]["end"] = True
+
+
                 else:
-                    next_node = {
-                        "letter" : "#",
-                        "end" : True,
-                        "delimiter" : True,
-                        "children" : {}
-                    }
-                    prev_node["children"]["#"] = next_node
+                    if "#" not in prev_node["children"]:
+                        next_node = {
+                            "letter" : "#",
+                            "end" : True,
+                            "delimiter" : False,
+                            "children" : {}
+                        }
+                        prev_node["children"]["#"] = next_node
+                    else:
+                        prev_node["children"]["#"]["end"] = True
 
 
     print("Done")
     print("--- %s seconds ---" % (time.time() - start_time))
 
-    print(start)
+    with open('briedata.txt', 'w') as outfile:
+        json.dump(start, outfile)
 
-    for child in start["children"]:
-        word_node = start["children"][child]
-        for i in word_node["children"]:
-            print_dict_preffix(word_node["children"][i], "")
+    # for child in start["children"]:
+    #     word_node = start["children"][child]
+    #     for i in word_node["children"]:
+    #         print_dict_preffix(word_node["children"][i], "")
 
 
 
