@@ -3,9 +3,6 @@ import time
 import json
 
 def find_offsets(haystack, needle):
-    """
-    Find the start of all (possibly-overlapping) instances of needle in haystack
-    """
     offs = -1
     while True:
         offs = haystack.find(needle, offs+1)

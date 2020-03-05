@@ -13,11 +13,6 @@ not_letters = ["   ", " * ", "TLS", "TWS", "DLS", "DWS"]
 
 def BruteForce(board, rack):
 
-    rack = [ rack.rack[i].get_letter() for i in range(len(rack.rack)) ]
-
-    clean_board = copy.deepcopy(board.board)
-
-
     best_move = {
         "word" : "N/A",
         "score" : 0,
@@ -25,7 +20,7 @@ def BruteForce(board, rack):
         "Y" : 1,
         "direction" : "N/A"
     }
-    for row_number, row in enumerate(clean_board):
+    for row_number, row in enumerate(board):
         for column_number, tile in enumerate(row):
 
 
@@ -41,7 +36,7 @@ def BruteForce(board, rack):
                 valid_move = False #it could be placed there
                 while(True):
                     try:
-                        if clean_board[row_number][column_number+position] in not_letters:
+                        if board[row_number][column_number+position] in not_letters:
                             empty_space = True
 
                             if tiles == tiles_available:
@@ -49,22 +44,22 @@ def BruteForce(board, rack):
                                     bingo = 1
                                 break
 
-                            template.append(clean_board[row_number][column_number+position])
+                            template.append(board[row_number][column_number+position])
                             tiles += 1
-                            if clean_board[row_number][column_number+position] == " * ":
+                            if board[row_number][column_number+position] == " * ":
                                 valid_move = True
                         else:
-                            template.append(clean_board[row_number][column_number+position])
+                            template.append(board[row_number][column_number+position])
                             valid_move = True
 
 
                         #can be placed at the end of a vertical word
                         if row_number != 0:
-                            if clean_board[row_number-1][column_number+position] not in not_letters:
+                            if board[row_number-1][column_number+position] not in not_letters:
                                 valid_move = True #floating word
 
                         if row_number != 14:
-                            if clean_board[row_number+1][column_number+position] not in not_letters:
+                            if board[row_number+1][column_number+position] not in not_letters:
                                 valid_move = True
 
                         position += 1
@@ -82,7 +77,7 @@ def BruteForce(board, rack):
                         if len(word) == len(template):
                             if is_valid_word(template, word):
                                 if word_has_available_tiles(rack,template,word):
-                                    valid_position = is_valid_position(word, clean_board, "horizontal", column_number, row_number)
+                                    valid_position = is_valid_position(word, board, "horizontal", column_number, row_number)
                                     if valid_position != False:
                                         if valid_position > best_move["score"]:
                                                 best_move["score"] = valid_position + 50*bingo
@@ -106,27 +101,27 @@ def BruteForce(board, rack):
 
                 while(True):
                     try:
-                        if clean_board[row_number+position][column_number] in not_letters:
+                        if board[row_number+position][column_number] in not_letters:
                             empty_space = True
                             if tiles == tiles_available:
                                 if tiles == 7:
                                     bingo = 1
                                 break
-                            template.append(clean_board[row_number+position][column_number])
+                            template.append(board[row_number+position][column_number])
                             tiles += 1
-                            if clean_board[row_number+position][column_number] == " * ":
+                            if board[row_number+position][column_number] == " * ":
                                 valid_move = True
                         else:
-                            template.append(clean_board[row_number+position][column_number])
+                            template.append(board[row_number+position][column_number])
                             valid_move = True
 
                         #can be placed at the end of a horizontal word
                         if column_number != 0:
-                            if clean_board[row_number+position][column_number-1] not in not_letters:
+                            if board[row_number+position][column_number-1] not in not_letters:
                                 valid_move = True
 
                         if column_number != 14:
-                            if clean_board[row_number+position][column_number+1] not in not_letters:
+                            if board[row_number+position][column_number+1] not in not_letters:
                                 valid_move = True
 
                         position += 1
@@ -140,7 +135,7 @@ def BruteForce(board, rack):
                         if len(word) == len(template):
                             if is_valid_word(template, word):
                                 if word_has_available_tiles(rack,template,word):
-                                    valid_position = is_valid_position(word, clean_board, "vertical", column_number, row_number)
+                                    valid_position = is_valid_position(word, board, "vertical", column_number, row_number)
                                     if valid_position != False:
                                         if valid_position > best_move["score"]:
                                                 best_move["score"] = valid_position + 50*bingo
@@ -334,11 +329,11 @@ def score_word(board, word, direction, x, y):
 def is_word_in_dictionary(word):
     return word in clean_dictionary
 
-def get_board(clean_board):
+def get_board(board):
     #Returns the board in string form.
     board_str = "   |  " + "  |  ".join(str(item) for item in range(10)) + "  | " + "  | ".join(str(item) for item in range(10, 15)) + " |"
     board_str += "\n   _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n"
-    board = copy.deepcopy(clean_board)
+    board = copy.deepcopy(board)
     for i in range(len(board)):
         if i < 10:
             spaced_items = []

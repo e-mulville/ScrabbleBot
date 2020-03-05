@@ -1,5 +1,5 @@
 from random import shuffle
-from brute_force import BruteForce
+from skeleton import find_best_moves
 import time
 
 
@@ -416,7 +416,7 @@ def turn(player, board, bag):
         if 1 == 1:
             print("Calculating")
             start_time = time.time()
-            best_move = BruteForce(board, player.rack)
+            best_move = find_best_moves(board, player.rack)
             total_time += time.time() - start_time
             turns += 1
             print(total_time / turns)
