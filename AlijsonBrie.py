@@ -14,7 +14,7 @@ def find_offsets(haystack, needle):
 
 def print_dict_preffix(node, word):
     if node["delimiter"] == True:
-        new_word = word + "#"
+        new_word = word + "$"
 
         if node["end"] == True:
             print(new_word)
@@ -54,7 +54,7 @@ def main():
     start_time = time.time()
 
     dictionary = open("dic.txt", "r")
-    clean_dictionary = list(string.ascii_uppercase)
+    clean_dictionary = []
 
     for word in dictionary:
         clean_dictionary.append(word[:-1])
@@ -63,7 +63,7 @@ def main():
 
     start = { "children" : {} }
 
-    for word in clean_dictionary:
+    for word in list(string.ascii_uppercase):
         start_node = {
             "word" : word,
             "children" : {}
@@ -73,7 +73,6 @@ def main():
 
         for longer_word in clean_dictionary:
             for offs in find_offsets(longer_word, word):
-                #needs changing
                 prefix = longer_word[:offs]
                 suffix = longer_word[offs+1:]
 
@@ -93,17 +92,17 @@ def main():
                         prev_node = prev_node["children"][letter]
 
                 if suffix:
-                    if "#" not in prev_node["children"]:
+                    if "$" not in prev_node["children"]:
                         next_node = {
-                            "letter" : "#",
+                            "letter" : "$",
                             "end" : False,
                             "delimiter" : True,
                             "children" : {}
                         }
-                        prev_node["children"]["#"] = next_node
+                        prev_node["children"]["$"] = next_node
                         prev_node = next_node
                     else:
-                        prev_node = prev_node["children"]["#"]
+                        prev_node = prev_node["children"]["$"]
 
 
                     for letter in suffix[:-1]:
@@ -132,16 +131,16 @@ def main():
 
 
                 else:
-                    if "#" not in prev_node["children"]:
+                    if "$" not in prev_node["children"]:
                         next_node = {
-                            "letter" : "#",
+                            "letter" : "$",
                             "end" : True,
                             "delimiter" : True,
                             "children" : {}
                         }
-                        prev_node["children"]["#"] = next_node
+                        prev_node["children"]["$"] = next_node
                     else:
-                        prev_node["children"]["#"]["end"] = True
+                        prev_node["children"]["$"]["end"] = True
 
 
     print("Done")
@@ -150,10 +149,10 @@ def main():
     with open('briedata.txt', 'w') as outfile:
         json.dump(start, outfile)
 
-    # for child in start["children"]:
-    #     word_node = start["children"][child]
-    #     for i in word_node["children"]:
-    #         print_dict_preffix(word_node["children"][i], "")
+    # $ for child in start["children"]:
+    # $     word_node = start["children"][child]
+    # $     for i in word_node["children"]:
+    # $         print_dict_preffix(word_node["children"][i], "")
 
 
 

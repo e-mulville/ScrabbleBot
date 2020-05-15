@@ -16,8 +16,6 @@ def find_best_moves(board, rack):
 
     return best_move
 
-
-
 def score_word(board, word, direction, x, y):
     LETTER_VALUES = {"A": 1,
                      "B": 3,
