@@ -61,18 +61,26 @@ def main():
 
     dictionary.close()
 
-    start = { "children" : {} }
+    start = {
+        "letter" : "",
+        "children" : {},
+        "delimiter" : False,
+        "end" : False
+    }
 
     for word in list(string.ascii_uppercase):
         start_node = {
-            "word" : word,
-            "children" : {}
+            "letter" : word,
+            "children" : {},
+            "delimiter" : False,
+            "end" : False
         }
 
         start["children"][word] = start_node
 
         for longer_word in clean_dictionary:
             for offs in find_offsets(longer_word, word):
+                #TODO check it works
                 prefix = longer_word[:offs]
                 suffix = longer_word[offs+1:]
 
