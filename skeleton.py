@@ -1,18 +1,20 @@
 import copy
 from brute_force import BruteForce
 from tree_search import brie_search
+from look_ahead import look_ahead
 
 not_letters = ["   ", " * ", "TLS", "TWS", "DLS", "DWS"]
 
-def find_best_moves(board, rack):
+def find_best_moves(board, rack, other_rack, bag):
 
-    rack = [ rack.rack[i].get_letter() for i in range(len(rack.rack)) ]
-
-    clean_board = copy.deepcopy(board.board)
-
+    rack = rack.rack
+    other_rack = other_rack.rack
+    bag = bag.bag
+    board = board.board
 
     #best_move = BruteForce(board, rack)
-    best_move = brie_search(clean_board,rack)
+    best_move = look_ahead(board, rack, other_rack, bag)
+    #best_move = brie_search(clean_board,rack,1)
 
     return best_move
 
