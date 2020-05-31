@@ -1,20 +1,20 @@
 import random
 import copy
 
+from itertools import permutations
+
 from tree_search import brie_search
 
-def look_ahead(board, rack, other_rack, bag):
+def end_game_search(board, rack, other_rack, bag):
 
     global M, O, R, N
 
     #number of moves considered for player
-    M = 5
+    M = 20
     #number of moves for opponent
-    O = 1
+    O = 20
     #number of racks guessed
     R = 10
-    #number of turns in
-    N = 1
 
     unknown_tiles = other_rack + bag
 
@@ -27,33 +27,34 @@ def look_ahead(board, rack, other_rack, bag):
 
     next_moves = brie_search(board, rack, M)
 
-    randomness = max(len(unknown_tiles) - 7, 1)
+    leftover_tiles = len(unknown_tiles)
+    if leftover_tiles > 10:
+        return next_moves[0]
+    else:
+        bags = list(permutations(unknown_tiles))
 
-    for move in next_moves:
-        #get future value for each move
+    for bag in bags:
 
-        if move["word"] != "N/A":
+        print(bag)
+        for move in next_moves:
+            #get future value for each move
 
-            future_score = 0
+            if move["word"] != "N/A":
 
-            for iterations in range(R):
-
-                random.shuffle(unknown_tiles)
-
+                future_score = 0
 
                 alpha = float('inf')
                 beta = float('-inf')
 
-                future_score += move["score"] + (look_opponent_turn(board, unknown_tiles, N, move["rack"], [], 0, alpha, beta) / randomness)
-
-            if (future_score/R) > best_move["heuristic"]:
-                best_move = { "score" : move["score"], "word" : move["word"], "X" : move["X"], "Y" : move["Y"], "direction" : move["direction"], "heuristic" : future_score/R}
+                future_score += move["score"] + (look_opponent_turn(board, list(bag), move["rack"], [], 0, alpha, beta))
+                if future_score > best_move["heuristic"]:
+                    best_move = { "score" : move["score"], "word" : move["word"], "X" : move["X"], "Y" : move["Y"], "direction" : move["direction"], "heuristic" : future_score}
 
     return best_move
 
 
 
-def look_self_turn(board, bag, level, self_rack, opp_rack, accu, alpha, beta):
+def look_self_turn(board, bag, self_rack, opp_rack, accu, alpha, beta):
     #needs to take randomly from Bag
 
     global M, O, R, N
@@ -92,8 +93,7 @@ def look_self_turn(board, bag, level, self_rack, opp_rack, accu, alpha, beta):
                 for i in range(len(word)):
                     clean_board[move["Y"]+i][move["X"]] = word[i]
 
-        if level > 1:
-            eval = look_opponent_turn(clean_board, bag, level - 1, move["rack"], opp_rack, move_score, alpha, beta)
+            eval = look_opponent_turn(clean_board, bag, move["rack"], opp_rack, move_score, alpha, beta)
         else:
             eval = move_score
 
@@ -108,7 +108,7 @@ def look_self_turn(board, bag, level, self_rack, opp_rack, accu, alpha, beta):
     return max_future_score
 
 
-def look_opponent_turn(board, bag, level, self_rack, opp_rack, accu, alpha, beta):
+def look_opponent_turn(board, bag, self_rack, opp_rack, accu, alpha, beta):
 
     #needs to take randomly from Bag
 
@@ -121,6 +121,9 @@ def look_opponent_turn(board, bag, level, self_rack, opp_rack, accu, alpha, beta
 
     #the value of a move is its score + future values
     if len(bag) >= needed_letters:
+
+        print(opp_rack)
+        print(bag)
 
         random_rack = opp_rack + bag[:needed_letters]
 
@@ -149,14 +152,12 @@ def look_opponent_turn(board, bag, level, self_rack, opp_rack, accu, alpha, beta
                 for i in range(len(word)):
                     clean_board[move["Y"]+i][move["X"]] = word[i]
 
-        if level > 1:
-            eval = look_self_turn(clean_board, bag, level - 1, self_rack, move["rack"], move_score, alpha, beta)
+            eval = look_self_turn(clean_board, bag, self_rack, move["rack"], move_score, alpha, beta)
         else:
             eval = move_score
 
         if eval < min_future_score:
             min_future_score = eval
-
         # beta = min(beta, move_score)
         #
         # if beta <= alpha:
