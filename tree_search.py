@@ -2,7 +2,6 @@ import json
 import time
 import itertools
 import copy
-from sizeof import total_size
 
 not_letters = ["   ", " * ", "TLS", "TWS", "DLS", "DWS"]
 
@@ -154,26 +153,26 @@ def brie_search(board, rack, k):
                                 del best_moves[0]
                     # print(best_moves)
                     # print("~~~~")
-            # else:
-            #     if row_number > 0:
-            #         if board[row_number-1][column_number] not in not_letters:
-            #             find_no_anchor_horizontal(rack, board, row_number, column_number, best_moves)
-            #         elif row_number < 14:
-            #             if board[row_number+1][column_number] not in not_letters:
-            #                 find_no_anchor_horizontal(rack, board, row_number, column_number, best_moves)
-            #     elif row_number < 14:
-            #         if board[row_number+1][column_number] not in not_letters:
-            #             find_no_anchor_horizontal(rack, board, row_number, column_number, best_moves)
-            #
-            #     if column_number > 0:
-            #         if board[row_number][column_number-1] not in not_letters:
-            #             find_no_anchor_vertical(rack, board, row_number, column_number, best_moves)
-            #         elif column_number < 14:
-            #             if board[row_number][column_number+1] not in not_letters:
-            #                 find_no_anchor_vertical(rack, board, row_number, column_number, best_moves)
-            #     elif column_number < 14:
-            #         if board[row_number][column_number+1] not in not_letters:
-            #             find_no_anchor_vertical(rack, board, row_number, column_number, best_moves)
+            else:
+                if row_number > 0:
+                    if board[row_number-1][column_number] not in not_letters:
+                        find_no_anchor_horizontal(rack, board, row_number, column_number, best_moves)
+                    elif row_number < 14:
+                        if board[row_number+1][column_number] not in not_letters:
+                            find_no_anchor_horizontal(rack, board, row_number, column_number, best_moves)
+                elif row_number < 14:
+                    if board[row_number+1][column_number] not in not_letters:
+                        find_no_anchor_horizontal(rack, board, row_number, column_number, best_moves)
+
+                if column_number > 0:
+                    if board[row_number][column_number-1] not in not_letters:
+                        find_no_anchor_vertical(rack, board, row_number, column_number, best_moves)
+                    elif column_number < 14:
+                        if board[row_number][column_number+1] not in not_letters:
+                            find_no_anchor_vertical(rack, board, row_number, column_number, best_moves)
+                elif column_number < 14:
+                    if board[row_number][column_number+1] not in not_letters:
+                        find_no_anchor_vertical(rack, board, row_number, column_number, best_moves)
 
 
     return best_moves
