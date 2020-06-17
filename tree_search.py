@@ -2,6 +2,7 @@ import json
 import time
 import itertools
 import copy
+from sizeof import total_size
 
 not_letters = ["   ", " * ", "TLS", "TWS", "DLS", "DWS"]
 
@@ -16,12 +17,14 @@ def brie_search(board, rack, k):
 
     best_moves = []
 
-
     for n in range(k):
         best_moves.append({
             "score" : 0,
-            "word" : "N/A"
+            "word" : "N/A",
+            "rack" : rack
         })
+
+    num_of_moves = 0
 
     for row_number, row in enumerate(board):
         for column_number, tile in enumerate(row):
@@ -50,8 +53,6 @@ def brie_search(board, rack, k):
 
                     for move in moves:
 
-
-
                         (word, move_rack, move_row, move_column) = move
 
                         if len(move_rack) == len(rack):
@@ -59,17 +60,17 @@ def brie_search(board, rack, k):
 
                         score = score_move(move, board, "horizontal", data)
 
-                        if len(rack) - len(move_rack) == 7:
+                        if len(rack) - len(move_rack) == 7 and score != False:
                             score += 50
 
                         if score > best_moves[0]["score"]:
                             for i in range(len(best_moves)):
                                 if score < best_moves[i]["score"]:
-                                    best_moves.insert(i,{ "score" : score, "word" : word, "X" : move_column, "Y" : move_row, "direction" : "horizontal"})
+                                    best_moves.insert(i,{ "score" : score, "word" : word, "X" : move_column, "Y" : move_row, "direction" : "horizontal", "rack" : move_rack})
                                     del best_moves[0]
                                     break
                                 if i == len(best_moves) - 1:
-                                    best_moves.insert(i+1,{ "score" : score, "word" : word, "X" : move_column, "Y" : move_row, "direction" :"horizontal"})
+                                    best_moves.insert(i+1,{ "score" : score, "word" : word, "X" : move_column, "Y" : move_row, "direction" :"horizontal", "rack" : move_rack})
                                     del best_moves[0]
 
 
@@ -97,29 +98,26 @@ def brie_search(board, rack, k):
 
                     moves = find_moves_vertical(node, word, rack, board, row_number, column_number)
 
-
                     for move in moves:
 
                         (word, move_rack, move_row, move_column) = move
-
 
                         if len(move_rack) == len(rack):
                             continue
 
                         score = score_move(move, board, "vertical", data)
 
-                        if len(rack) - len(move_rack) == 7:
+                        if len(rack) - len(move_rack) == 7 and score != False:
                             score += 50
-
 
                         if score > best_moves[0]["score"]:
                             for i in range(len(best_moves)):
                                 if score < best_moves[i]["score"]:
-                                    best_moves.insert(i,{ "score" : score, "word" : word, "X" : move_column, "Y" : move_row, "direction" : "vertical"})
+                                    best_moves.insert(i,{ "score" : score, "word" : word, "X" : move_column, "Y" : move_row, "direction" : "vertical", "rack" : move_rack})
                                     del best_moves[0]
                                     break
                                 if i == len(best_moves) - 1:
-                                    best_moves.insert(i+1,{ "score" : score, "word" : word, "X" : move_column, "Y" : move_row, "direction" :"vertical"})
+                                    best_moves.insert(i+1,{ "score" : score, "word" : word, "X" : move_column, "Y" : move_row, "direction" :"vertical", "rack" : move_rack})
                                     del best_moves[0]
 
 
@@ -133,7 +131,6 @@ def brie_search(board, rack, k):
 
                 node = data
 
-
                 moves = find_moves_horizontal(node, word, rack, board, row_number, column_number + 1)
 
                 for move in moves:
@@ -143,24 +140,110 @@ def brie_search(board, rack, k):
 
                     score = score_move(move, board, "horizontal", data)
 
-                    if len(rack) - len(move_rack) == 7:
+                    if len(rack) - len(move_rack) == 7 and score != False:
                         score += 50
 
                     if score > best_moves[0]["score"]:
                         for i in range(len(best_moves)):
                             if score < best_moves[i]["score"]:
-                                best_moves.insert(i,{ "score" : score, "word" : word, "X" : column, "Y" : row, "direction" : "horizontal"})
+                                best_moves.insert(i,{ "score" : score, "word" : word, "X" : column, "Y" : row, "direction" : "horizontal", "rack" : move_rack})
                                 del best_moves[0]
                                 break
                             if i == len(best_moves) - 1:
-                                best_moves.insert(i+1,{ "score" : score, "word" : word, "X" : column, "Y" : row, "direction" :"horizontal"})
+                                best_moves.insert(i+1,{ "score" : score, "word" : word, "X" : column, "Y" : row, "direction" :"horizontal", "rack" : move_rack})
                                 del best_moves[0]
                     # print(best_moves)
                     # print("~~~~")
+            # else:
+            #     if row_number > 0:
+            #         if board[row_number-1][column_number] not in not_letters:
+            #             find_no_anchor_horizontal(rack, board, row_number, column_number, best_moves)
+            #         elif row_number < 14:
+            #             if board[row_number+1][column_number] not in not_letters:
+            #                 find_no_anchor_horizontal(rack, board, row_number, column_number, best_moves)
+            #     elif row_number < 14:
+            #         if board[row_number+1][column_number] not in not_letters:
+            #             find_no_anchor_horizontal(rack, board, row_number, column_number, best_moves)
+            #
+            #     if column_number > 0:
+            #         if board[row_number][column_number-1] not in not_letters:
+            #             find_no_anchor_vertical(rack, board, row_number, column_number, best_moves)
+            #         elif column_number < 14:
+            #             if board[row_number][column_number+1] not in not_letters:
+            #                 find_no_anchor_vertical(rack, board, row_number, column_number, best_moves)
+            #     elif column_number < 14:
+            #         if board[row_number][column_number+1] not in not_letters:
+            #             find_no_anchor_vertical(rack, board, row_number, column_number, best_moves)
+
 
     return best_moves
 
+def find_no_anchor_horizontal(rack, board, row_number, column_number, best_moves):
 
+        global valid_moves
+
+        word = ""
+
+        node = data
+
+        moves = find_moves_horizontal(node, word, rack, board, row_number, column_number)
+
+        for move in moves:
+
+            (word, move_rack, row, column) = move
+            #print(move)
+
+            if len(move_rack) == len(rack):
+                continue
+
+            score = score_move(move, board, "horizontal", data)
+
+            if len(rack) - len(move_rack) == 7 and score != False:
+                score += 50
+
+            if score > best_moves[0]["score"]:
+                for i in range(len(best_moves)):
+                    if score < best_moves[i]["score"]:
+                        best_moves.insert(i,{ "score" : score, "word" : word, "X" : column, "Y" : row, "direction" : "horizontal", "rack" : move_rack})
+                        del best_moves[0]
+                        break
+                    if i == len(best_moves) - 1:
+                        best_moves.insert(i+1,{ "score" : score, "word" : word, "X" : column, "Y" : row, "direction" :"horizontal", "rack" : move_rack})
+                        del best_moves[0]
+
+def find_no_anchor_vertical(rack, board, row_number, column_number, best_moves):
+
+        global valid_moves
+
+        word = ""
+
+        node = data
+
+        moves = find_moves_vertical(node, word, rack, board, row_number, column_number)
+
+        for move in moves:
+
+            (word, move_rack, row, column) = move
+
+
+            if len(move_rack) == len(rack):
+                continue
+            #print(move)
+
+            score = score_move(move, board, "vertical", data)
+
+            if len(rack) - len(move_rack) == 7 and score != False:
+                score += 50
+
+            if score > best_moves[0]["score"]:
+                for i in range(len(best_moves)):
+                    if score < best_moves[i]["score"]:
+                        best_moves.insert(i,{ "score" : score, "word" : word, "X" : column, "Y" : row, "direction" : "vertical", "rack" : move_rack})
+                        del best_moves[0]
+                        break
+                    if i == len(best_moves) - 1:
+                        best_moves.insert(i+1,{ "score" : score, "word" : word, "X" : column, "Y" : row, "direction" :"vertical", "rack" : move_rack})
+                        del best_moves[0]
 
 def find_moves_horizontal(node, word, rack, board, row, column):
 
@@ -228,8 +311,8 @@ def backwards_horizontal(node, word, rack, word_list, board, row, column):
                             copy_rack.remove(letter)
                             new_node = node["children"][child]
                             if "$" in new_node["children"]:
-                                if column + len(word) <= 14:
-                                    forwards_horizontal(new_node["children"]["$"], new_word, rack, word_list, board, row, column + len(new_word))
+                                if column + len(new_word) <= 14:
+                                    forwards_horizontal(new_node["children"]["$"], new_word, copy_rack, word_list, board, row, column + len(new_word))
                                 else:
                                     if node["children"]["$"]["end"] == True:
                                         word_list.append((new_word, rack, row, column))
@@ -242,8 +325,8 @@ def backwards_horizontal(node, word, rack, word_list, board, row, column):
                         copy_rack.remove(letter)
                         new_node = node["children"][letter]
                         if "$" in new_node["children"]:
-                            if column + len(word) <= 14:
-                                forwards_horizontal(new_node["children"]["$"], new_word, rack, word_list, board, row, column + len(new_word))
+                            if column + len(new_word) <= 14:
+                                forwards_horizontal(new_node["children"]["$"], new_word, copy_rack, word_list, board, row, column + len(new_word))
                             else:
                                 if node["children"]["$"]["end"] == True:
                                     word_list.append((new_word, rack, row, column))
@@ -315,7 +398,7 @@ def forwards_horizontal(node, word, rack, word_list, board, row, column):
             else:
                 new_node = node["children"][letter]
                 if new_node["end"] == True:
-                    word_list.append((new_word, rack, row, column -len(word) + 1))
+                    word_list.append((new_word, rack, row, column -len(word)))
 
 
 def find_moves_vertical(node, word, rack, board, row, column):
@@ -385,8 +468,8 @@ def backwards_vertical(node, word, rack, word_list, board, row, column):
                             copy_rack.remove(letter)
                             new_node = node["children"][child]
                             if "$" in new_node["children"]:
-                                if row + len(word) <= 14:
-                                    forwards_vertical(new_node["children"]["$"], new_word, rack, word_list, board, row + len(new_word), column)
+                                if row + len(new_word) <= 14:
+                                    forwards_vertical(new_node["children"]["$"], new_word, copy_rack, word_list, board, row + len(new_word), column)
                                 else:
                                     if node["children"]["$"]["end"] == True:
                                         word_list.append((new_word, rack, row, column))
@@ -398,13 +481,12 @@ def backwards_vertical(node, word, rack, word_list, board, row, column):
                         copy_rack.remove(letter)
                         new_node = node["children"][letter]
                         if "$" in new_node["children"]:
-                            if row + len(word) <= 14:
-                                forwards_vertical(new_node["children"]["$"], new_word, rack, word_list, board, row + len(new_word), column)
+                            if row + len(new_word) <= 14:
+                                forwards_vertical(new_node["children"]["$"], new_word, copy_rack, word_list, board, row + len(new_word), column)
                             else:
                                 if node["children"]["$"]["end"] == True:
                                     word_list.append((new_word, rack, row, column))
 
-        #forwards_horizontal
     else:
         letter = board[row][column]
         if letter in node["children"]:
@@ -470,7 +552,7 @@ def forwards_vertical(node, word, rack, word_list, board, row, column):
             else:
                 new_node = node["children"][letter]
                 if new_node["end"] == True:
-                    word_list.append((new_word, rack, row-len(word) + 1, column))
+                    word_list.append((new_word, rack, row-len(word), column))
 
 
 
@@ -497,20 +579,17 @@ def score_move(move, board, direction, data):
             node = data["children"][word[i]]
 
             while(row-count >= 0):
-                try:
-                    letter = board[row-count][column+i]
-                    if letter not in not_letters:
-                        if letter not in node["children"]:
-                            return False
-                        else:
-                            new_word.insert(0,letter)
-                            new_word_y = row - count
-                            node = node["children"][letter]
+                letter = board[row-count][column+i]
+                if letter not in not_letters:
+                    if letter not in node["children"]:
+                        return False
                     else:
-                        break
-                    count += 1
-                except:
+                        new_word.insert(0,letter)
+                        new_word_y = row - count
+                        node = node["children"][letter]
+                else:
                     break
+                count += 1
 
 
             if "$" not in node["children"]:
@@ -518,22 +597,20 @@ def score_move(move, board, direction, data):
             node = node["children"]["$"]
 
             count = 1
-            while(True):
-                try:
-                    letter = board[row+count][column+i]
-                    if letter not in not_letters:
-                        if letter not in node["children"]:
-                            return False
-                        else:
-                            new_word.append(letter)
-                            node = node["children"][letter]
 
+            while(row+count <= 14):
+                letter = board[row+count][column+i]
+                if letter not in not_letters:
+                    if letter not in node["children"]:
+                        return False
                     else:
-                        break
+                        new_word.append(letter)
+                        node = node["children"][letter]
 
-                    count += 1
-                except:
+                else:
                     break
+
+                count += 1
 
             if len(new_word) > 1:
                 if node["end"] != True:
@@ -556,6 +633,7 @@ def score_move(move, board, direction, data):
             new_word = [word[i]]
             new_word_x = column
 
+
             node = data["children"][word[i]]
             while(column-count >= 0):
                 letter = board[row+i][column-count]
@@ -576,28 +654,28 @@ def score_move(move, board, direction, data):
                 return False
             node = node["children"]["$"]
 
-            while(True):
-                try:
-                    letter = board[row+i][column+count]
-                    if letter not in not_letters:
-                        if letter not in node["children"]:
-                            return False
-                        else:
-                            new_word.append(letter)
-                            node = node["children"][letter]
+            while(column + count <= 14):
+                letter = board[row+i][column+count]
+                if letter not in not_letters:
+                    if letter not in node["children"]:
+                        return False
                     else:
-                        break
-                    count += 1
-                except:
+                        new_word.append(letter)
+                        node = node["children"][letter]
+                else:
                     break
+                count += 1
 
             if len(new_word) > 1:
                 if node["end"] != True:
                     return False
+
                 str = ""
+
                 if board[row+i][column] in not_letters:
                     new_word_y = row+i
                     score_sum += score_word(board, str.join(new_word), "horizontal", new_word_x, new_word_y) ##why does this not do stuff
+
         return score_sum + score_word(board, word, "vertical", column, row)
 
 

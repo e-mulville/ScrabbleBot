@@ -1,54 +1,76 @@
 import random
 import copy
 
-from itertools import permutations
+from itertools import combinations
 
 from tree_search import brie_search
+
+from brute_force import get_board
 
 def end_game_search(board, rack, other_rack, bag):
 
     global M, O, R, N
 
     #number of moves considered for player
-    M = 20
+    M = 10
     #number of moves for opponent
-    O = 20
-    #number of racks guessed
-    R = 10
+    O = 10
 
     unknown_tiles = other_rack + bag
 
     best_move = {
                 "score" : 0,
                 "word" : "N/A",
-                "heuristic" : -9999999999
+                "heuristic" : float('-inf')
             }
 
 
     next_moves = brie_search(board, rack, M)
 
     leftover_tiles = len(unknown_tiles)
-    if leftover_tiles > 10:
-        return next_moves[0]
+
+    if leftover_tiles > 8:
+        return next_moves[-1]
     else:
-        bags = list(permutations(unknown_tiles))
+        opp_racks = list(combinations(unknown_tiles,min(7, leftover_tiles)))
 
-    for bag in bags:
+    for move in next_moves:
 
-        print(bag)
-        for move in next_moves:
+        clean_board = copy.deepcopy(board)
+
+        word = move["word"]
+
+        if move["word"] != "N/A":
+            if move["direction"] == "horizontal":
+                for i in range(len(word)):
+                    clean_board[move["Y"]][move["X"]+i] = word[i]
+            else:
+                for i in range(len(word)):
+                    clean_board[move["Y"]+i][move["X"]] = word[i]
+
+        future_score = 0
+
+        i = 0
+        for opp_rack in opp_racks:
+            i += 1
+            #try different combos of opponent racks
+            remaining_letters = copy.deepcopy(unknown_tiles)
+
+            for letter in list(opp_rack):
+                remaining_letters.remove(letter)
+
             #get future value for each move
 
             if move["word"] != "N/A":
 
-                future_score = 0
-
                 alpha = float('inf')
                 beta = float('-inf')
 
-                future_score += move["score"] + (look_opponent_turn(board, list(bag), move["rack"], [], 0, alpha, beta))
-                if future_score > best_move["heuristic"]:
-                    best_move = { "score" : move["score"], "word" : move["word"], "X" : move["X"], "Y" : move["Y"], "direction" : move["direction"], "heuristic" : future_score}
+                future_score += move["score"] + look_opponent_turn(clean_board, remaining_letters, move["rack"], list(opp_rack), 0, alpha, beta)
+
+        if move["word"] != "N/A":
+            if future_score > best_move["heuristic"]:
+                best_move = { "score" : move["score"], "word" : move["word"], "X" : move["X"], "Y" : move["Y"], "direction" : move["direction"], "heuristic" : future_score}
 
     return best_move
 
@@ -65,47 +87,57 @@ def look_self_turn(board, bag, self_rack, opp_rack, accu, alpha, beta):
 
     #the value of a move is its score + future values
     if len(bag) >= needed_letters:
-
-        random_rack = self_rack + bag[:needed_letters]
-
-        bag = bag[needed_letters:]
-
+        random_racks = list(combinations(bag,needed_letters))
     else:
-        random_rack = self_rack + bag
+        random_racks = [tuple(bag)]
 
-    next_moves = brie_search(board, random_rack, M)
+    average_accu = 0
 
-    for move in next_moves:
+    for rack in random_racks:
 
-        clean_board = copy.deepcopy(board)
+        random_rack = self_rack + list(rack)
 
-        score = move["score"]
+        remaining_letters = copy.deepcopy(bag)
 
-        move_score = accu + score
+        for letter in list(rack):
+            remaining_letters.remove(letter)
 
-        word = move["word"]
+        next_moves = brie_search(board, random_rack, M)
 
-        if word != "N/A":
-            if move["direction"] == "horizontal":
-                for i in range(len(word)):
-                    clean_board[move["Y"]][move["X"]+i] = word[i]
+        for move in next_moves:
+
+            word = move["word"]
+
+            if word != "N/A":
+
+                clean_board = copy.deepcopy(board)
+
+                score = move["score"]
+
+                move_score = accu + score
+
+                if move["direction"] == "horizontal":
+                    for i in range(len(word)):
+                        clean_board[move["Y"]][move["X"]+i] = word[i]
+                else:
+                    for i in range(len(word)):
+                        clean_board[move["Y"]+i][move["X"]] = word[i]
+
+                eval = look_opponent_turn(clean_board, remaining_letters, move["rack"], opp_rack, move_score, alpha, beta)
             else:
-                for i in range(len(word)):
-                    clean_board[move["Y"]+i][move["X"]] = word[i]
+                eval = accu
 
-            eval = look_opponent_turn(clean_board, bag, move["rack"], opp_rack, move_score, alpha, beta)
-        else:
-            eval = move_score
+            if eval > max_future_score:
+                max_future_score = eval
 
-        if eval > max_future_score:
-            max_future_score = eval
 
+        average_accu += max_future_score
         # alpha = max(alpha, move_score)
         #
         # if beta <= alpha:
         #     break
 
-    return max_future_score
+    return average_accu / len(random_racks)
 
 
 def look_opponent_turn(board, bag, self_rack, opp_rack, accu, alpha, beta):
@@ -121,46 +153,54 @@ def look_opponent_turn(board, bag, self_rack, opp_rack, accu, alpha, beta):
 
     #the value of a move is its score + future values
     if len(bag) >= needed_letters:
-
-        print(opp_rack)
-        print(bag)
-
-        random_rack = opp_rack + bag[:needed_letters]
-
-        bag = bag[needed_letters:]
-
+        random_racks = list(combinations(bag,needed_letters))
     else:
-        random_rack = opp_rack + bag
+        random_racks = [tuple(bag)]
 
-    next_moves = brie_search(board, random_rack, O)
+    average_accu = 0
 
-    for move in next_moves:
+    for rack in random_racks:
 
-        clean_board = copy.deepcopy(board)
+        random_rack = opp_rack + list(rack)
 
-        score = move["score"]
+        remaining_letters = copy.deepcopy(bag)
 
-        move_score = accu - score
+        for letter in list(rack):
+            remaining_letters.remove(letter)
 
-        word = move["word"]
+        next_moves = brie_search(board, random_rack, O)
 
-        if word != "N/A":
-            if move["direction"] == "horizontal":
-                for i in range(len(word)):
-                    clean_board[move["Y"]][move["X"]+i] = word[i]
+        for move in next_moves:
+
+            word = move["word"]
+
+            if word != "N/A":
+
+                clean_board = copy.deepcopy(board)
+
+                score = move["score"]
+
+                move_score = accu - score
+
+                if move["direction"] == "horizontal":
+                    for i in range(len(word)):
+                        clean_board[move["Y"]][move["X"]+i] = word[i]
+                else:
+                    for i in range(len(word)):
+                        clean_board[move["Y"]+i][move["X"]] = word[i]
+
+                eval = look_self_turn(clean_board, remaining_letters, self_rack, move["rack"], move_score, alpha, beta)
             else:
-                for i in range(len(word)):
-                    clean_board[move["Y"]+i][move["X"]] = word[i]
+                eval = accu
 
-            eval = look_self_turn(clean_board, bag, self_rack, move["rack"], move_score, alpha, beta)
-        else:
-            eval = move_score
+            if eval < min_future_score:
+                min_future_score = eval
 
-        if eval < min_future_score:
-            min_future_score = eval
-        # beta = min(beta, move_score)
+
+        average_accu += min_future_score
+        # alpha = max(alpha, move_score)
         #
         # if beta <= alpha:
         #     break
 
-    return min_future_score
+    return average_accu / len(random_racks)

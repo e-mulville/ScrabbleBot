@@ -150,12 +150,11 @@ def main():
                     else:
                         prev_node["children"]["$"]["end"] = True
 
+    with open('briedata.txt', 'w') as outfile:
+        json.dump(start, outfile)
 
     print("Done")
     print("--- %s seconds ---" % (time.time() - start_time))
-
-    with open('briedata.txt', 'w') as outfile:
-        json.dump(start, outfile)
 
     # $ for child in start["children"]:
     # $     word_node = start["children"][child]
